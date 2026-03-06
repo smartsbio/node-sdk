@@ -1,0 +1,43 @@
+{
+  "name": "@smartsbio/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript/JavaScript SDK for the smarts.bio bioinformatics platform",
+  "author": "SmartsBio <dev@smarts.bio>",
+  "license": "MIT",
+  "homepage": "https://smarts.bio/docs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smartsbio/smarts-bio-node-sdk"
+  },
+  "keywords": [
+    "bioinformatics",
+    "genomics",
+    "ai",
+    "smarts.bio",
+    "sdk"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.esm.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "typescript": "^5.4.0"
+  }
+}
