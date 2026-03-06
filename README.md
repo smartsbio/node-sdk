@@ -60,6 +60,9 @@ Ask the AI agent anything — it orchestrates the right tools automatically:
 | **Literature & databases** | PubMed, NCBI Gene, UniProt, STRING, ClinVar |
 | **Pipelines** | WES alignment, somatic variant calling, RNA-seq differential expression |
 
+> These are just some of the tools available. See the full updated list at [smarts.bio/docs](https://smarts.bio/docs).
+
+
 ---
 
 ## Installation
