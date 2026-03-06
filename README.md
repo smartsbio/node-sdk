@@ -1,162 +1,160 @@
-# @smartsbio/sdk
+<p align="center">
+  <img src="https://raw.githubusercontent.com/smartsbio/smarts-bio-node-sdk/main/assets/logo.svg" alt="smarts.bio" height="60" />
+</p>
 
-Official TypeScript/JavaScript SDK for the [smarts.bio](https://smarts.bio) bioinformatics platform.
+<h3 align="center">Official TypeScript / JavaScript SDK for <a href="https://smarts.bio">smarts.bio</a></h3>
 
-## Installation
+<p align="center">
+  Run BLAST, GATK, AlphaFold, BWA, DESeq2, and dozens more bioinformatics tools — all through a single API.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@smartsbio/sdk"><img src="https://img.shields.io/npm/v/@smartsbio/sdk.svg" alt="npm version" /></a>
+  <a href="https://smarts.bio/docs"><img src="https://img.shields.io/badge/docs-smarts.bio%2Fdocs-blue" alt="documentation" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license" /></a>
+</p>
+
+---
+
+## Get started in 2 minutes
+
+1. **Sign up** at [smarts.bio](https://smarts.bio) and create a free account
+2. **Generate an API key** — Organization Settings → API Keys
+3. **Install and run:**
 
 ```bash
 npm install @smartsbio/sdk
 ```
 
-**Requirements:** Node.js 18+. Zero runtime dependencies — uses native `fetch` and `ReadableStream`.
-
-## Quick Start
-
 ```typescript
 import { SmartsBio } from '@smartsbio/sdk';
 
-const client = new SmartsBio({ apiKey: process.env.SMARTSBIO_API_KEY });
+const client = new SmartsBio({ apiKey: 'sk_live_...' });
 
-// List workspaces
-const workspaces = await client.workspaces.list();
-
-// Run a query
 const response = await client.query.run({
-    prompt: 'Find BRCA1 variants associated with breast cancer',
-    workspaceId: workspaces[0].id,
+    prompt: 'Run BLAST for ATGCGTAACCGTAA and find homologs in nr database',
+    workspaceId: 'ws_abc',
 });
 console.log(response.answer);
 ```
 
-## Authentication
+**Full documentation → [smarts.bio/docs](https://smarts.bio/docs)**
 
-Generate an API key from [chat.smarts.bio](https://chat.smarts.bio) → Organization Settings → API Keys.
+---
+
+## What can you do?
+
+Ask the AI agent anything — it orchestrates the right tools automatically:
+
+| Category | Tools |
+|----------|-------|
+| **Sequence analysis** | BLAST, HMMER, Clustal Omega, MUSCLE |
+| **Variant calling** | GATK HaplotypeCaller, FreeBayes, DeepVariant |
+| **Alignment** | BWA-MEM, STAR, HISAT2, Bowtie2 |
+| **Structure prediction** | AlphaFold, RoseTTAFold, ESMFold |
+| **RNA-seq / expression** | DESeq2, edgeR, Salmon, kallisto |
+| **Genome annotation** | Prokka, Augustus, BRAKER |
+| **Literature & databases** | PubMed, NCBI Gene, UniProt, STRING, ClinVar |
+| **Pipelines** | WES alignment, somatic variant calling, RNA-seq differential expression |
+
+---
+
+## Installation
+
+```bash
+npm install @smartsbio/sdk
+# or
+yarn add @smartsbio/sdk
+# or
+pnpm add @smartsbio/sdk
+```
+
+**Requirements:** Node.js 18+. Zero runtime dependencies — uses native `fetch` and `ReadableStream`.
+
+---
+
+## Authentication
 
 ```typescript
 // Pass directly
 const client = new SmartsBio({ apiKey: 'sk_live_...' });
 
-// Or set environment variable SMARTSBIO_API_KEY
+// Or set SMARTSBIO_API_KEY environment variable
 const client = new SmartsBio();
 ```
 
-## Configuration
+Generate your key at [chat.smarts.bio](https://chat.smarts.bio) → Organization Settings → API Keys.
+
+---
+
+## Examples
+
+### Ask a bioinformatics question
 
 ```typescript
-const client = new SmartsBio({
-    apiKey: 'sk_live_...',
-    baseUrl: 'https://api.smarts.bio',  // override for local dev: 'http://localhost:3022'
-    timeout: 120_000,                   // ms (default: 120s)
-    maxRetries: 3,                      // retries on 429 / 5xx (default: 3)
+const response = await client.query.run({
+    prompt: 'Find BRCA1 variants associated with breast cancer and summarize the evidence',
+    workspaceId: 'ws_abc',
 });
+console.log(response.answer);
 ```
 
-## Modules
-
-### `client.workspaces`
+### Real-time streaming
 
 ```typescript
-const workspaces = await client.workspaces.list();
-// [{ id, name, description, createdAt }]
-```
-
-### `client.query`
-
-```typescript
-// Synchronous
-const response = await client.query.run({ prompt: '...', workspaceId: '...' });
-
-// Streaming (Server-Sent Events)
-for await (const chunk of client.query.stream({ prompt: '...', workspaceId: '...' })) {
+for await (const chunk of client.query.stream({ prompt: 'Align these reads to GRCh38', workspaceId: 'ws_abc' })) {
     if (chunk.type === 'status')  console.log(`[${chunk.status}]`);
     if (chunk.type === 'content') process.stdout.write(chunk.content ?? '');
-    if (chunk.type === 'done')    console.log('\nComplete.');
+    if (chunk.type === 'done')    console.log('\nDone.');
 }
 ```
 
-### `client.conversations`
+### Run a bioinformatics pipeline
 
 ```typescript
-const list = await client.conversations.list({ workspaceId: '...', limit: 20 });
-const detail = await client.conversations.get(id, workspaceId);
-```
+// Upload your FASTQ files
+const r1 = await client.files.upload('./sample_R1.fastq.gz', { workspaceId: 'ws_abc' });
+const r2 = await client.files.upload('./sample_R2.fastq.gz', { workspaceId: 'ws_abc' });
 
-### `client.tools`
-
-```typescript
-const tools = await client.tools.list();
-const result = await client.tools.run({
-    toolId: 'ncbi_search',
-    workspaceId: '...',
-    input: { database: 'pubmed', query: 'BRCA1', maxResults: 5 },
-});
-```
-
-### `client.files`
-
-```typescript
-// List
-const files = await client.files.list({ workspaceId: '...' });
-
-// Upload (accepts file path, Buffer, or Blob)
-const uploaded = await client.files.upload('./sample.vcf', { workspaceId: '...' });
-
-// Download URL
-const url = await client.files.getDownloadUrl({ workspaceId: '...', key: uploaded.key });
-
-// Delete
-await client.files.delete({ workspaceId: '...', key: uploaded.key });
-
-// Presigned S3 upload (for large files)
-const { uploadUrl, fileKey } = await client.files.getUploadUrl({
-    workspaceId: '...', filename: 'large.bam', contentType: 'application/octet-stream', size: 1_000_000_000,
-});
-// PUT file directly to uploadUrl, then:
-await client.files.confirmUpload({ workspaceId: '...', fileKey, filename: 'large.bam', size: 1_000_000_000, contentType: 'application/octet-stream' });
-```
-
-### `client.pipelines`
-
-```typescript
-// Create
+// Launch a WES alignment pipeline
 const pipeline = await client.pipelines.create({
     pipelineId: 'alignment-wes',
-    workspaceId: '...',
-    input: { fastq_r1: 'orgs/.../r1.fastq.gz', fastq_r2: 'orgs/.../r2.fastq.gz', reference: 'GRCh38' },
+    workspaceId: 'ws_abc',
+    input: { fastq_r1: r1.key, fastq_r2: r2.key, reference: 'GRCh38' },
 });
 
-// List / get / cancel
-const all = await client.pipelines.list({ workspaceId: '...' });
-const status = await client.pipelines.get(pipeline.id, workspaceId);
-await client.pipelines.cancel(pipeline.id, workspaceId);
-
-// Wait for completion (polls automatically)
-const result = await client.pipelines.wait(pipeline.id, workspaceId, {
-    pollInterval: 15_000,
+// Wait for results (polls automatically)
+const result = await client.pipelines.wait(pipeline.id, 'ws_abc', {
     onProgress: p => console.log(`  ${p.progressPct}% — ${p.currentStep}`),
 });
 ```
 
-### `client.visualizations`
+### Visualize results
 
 ```typescript
-// Generate a shareable viewer URL
-const { viewerUrl, format } = await client.visualizations.viewerUrl({
+// Get a shareable link to the built-in VCF / BAM / PDB viewer
+const { viewerUrl } = await client.visualizations.viewerUrl({
     filePath: 'orgs/.../variants.vcf',
-    workspaceId: '...',
-    expiresIn: 3600,
+    workspaceId: 'ws_abc',
 });
 console.log(`Open in browser: ${viewerUrl}`);
-
-// Submit async render job (volcano plot, heatmap, PCA, etc.)
-const job = await client.visualizations.render({
-    type: 'volcano_plot',
-    filePath: 'orgs/.../deseq2_results.csv',
-    workspaceId: '...',
-    outputFormat: 'png',
-});
-const done = await client.visualizations.getRenderStatus(job.jobId);
 ```
+
+---
+
+## SDK Modules
+
+| Module | Description |
+|--------|-------------|
+| `client.query` | Ask the AI agent — sync or streaming SSE |
+| `client.workspaces` | List and manage workspaces |
+| `client.conversations` | Retrieve conversation history |
+| `client.tools` | List available tools and run them directly |
+| `client.files` | Upload, download, and manage files (supports large files via presigned S3) |
+| `client.pipelines` | Launch and monitor long-running bioinformatics pipelines |
+| `client.visualizations` | Generate shareable viewer URLs and render plots |
+
+---
 
 ## Error Handling
 
@@ -166,28 +164,49 @@ import { AuthenticationError, PermissionDeniedError, RateLimitError, APIError } 
 try {
     await client.query.run({ prompt: '...' });
 } catch (err) {
-    if (err instanceof AuthenticationError) {
-        console.error('Invalid API key');
-    } else if (err instanceof PermissionDeniedError) {
-        console.error('Key lacks required scope');
-    } else if (err instanceof RateLimitError) {
-        console.error(`Rate limited — retry after ${err.retryAfter}s`);
-    } else if (err instanceof APIError) {
-        console.error(`API error ${err.status}: ${err.message}`);
-    }
+    if (err instanceof AuthenticationError)   console.error('Invalid API key');
+    if (err instanceof PermissionDeniedError) console.error('Key lacks required scope');
+    if (err instanceof RateLimitError)        console.error(`Rate limited — retry after ${err.retryAfter}s`);
+    if (err instanceof APIError)              console.error(`API error ${err.status}: ${err.message}`);
 }
 ```
 
-## Examples
+---
 
-See the [`examples/`](./examples) directory for runnable scripts:
+## Configuration
 
-- [`query-sync.ts`](./examples/query-sync.ts) — basic query
-- [`query-stream.ts`](./examples/query-stream.ts) — real-time streaming
+```typescript
+const client = new SmartsBio({
+    apiKey: 'sk_live_...',
+    baseUrl: 'https://api.smarts.bio', // override for local dev: 'http://localhost:3022'
+    timeout: 120_000,                  // ms (default: 120s)
+    maxRetries: 3,                     // retries on 429 / 5xx (default: 3)
+});
+```
+
+---
+
+## More Examples
+
+See the [`examples/`](./examples) directory:
+
+- [`query-sync.ts`](./examples/query-sync.ts) — basic AI query
+- [`query-stream.ts`](./examples/query-stream.ts) — real-time streaming output
 - [`list-tools.ts`](./examples/list-tools.ts) — enumerate available tools
-- [`upload-and-run.ts`](./examples/upload-and-run.ts) — upload file + run pipeline
-- [`viewer-url.ts`](./examples/viewer-url.ts) — generate bio-viewer link
+- [`upload-and-run.ts`](./examples/upload-and-run.ts) — upload files and run a pipeline
+- [`viewer-url.ts`](./examples/viewer-url.ts) — generate a bio-viewer link
 
-## Full Documentation
+---
 
-[smarts.bio/docs](https://smarts.bio/docs)
+## Documentation & Support
+
+- **Full docs:** [smarts.bio/docs](https://smarts.bio/docs)
+- **Platform:** [smarts.bio](https://smarts.bio)
+- **Issues:** [GitHub Issues](https://github.com/smartsbio/smarts-bio-node-sdk/issues)
+- **Email:** dev@smarts.bio
+
+---
+
+<p align="center">
+  Built with ❤️ by the <a href="https://smarts.bio">smarts.bio</a> team
+</p>
