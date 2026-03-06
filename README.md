@@ -184,9 +184,8 @@ try {
 ```typescript
 const client = new SmartsBio({
     apiKey: 'sk_live_...',
-    baseUrl: 'https://api.smarts.bio', // override for local dev: 'http://localhost:3022'
-    timeout: 120_000,                  // ms (default: 120s)
-    maxRetries: 3,                     // retries on 429 / 5xx (default: 3)
+    timeout: 120_000,   // ms (default: 120s)
+    maxRetries: 3,      // retries on 429 / 5xx (default: 3)
 });
 ```
 
