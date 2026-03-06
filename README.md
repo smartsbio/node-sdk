@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/smartsbio/smarts-bio-node-sdk/main/assets/logo.svg" alt="smarts.bio" height="60" />
+  <img src="https://raw.githubusercontent.com/smartsbio/node-sdk/main/assets/logo.svg" alt="smarts.bio" height="60" />
 </p>
 
 <h3 align="center">Official TypeScript / JavaScript SDK for <a href="https://smarts.bio">smarts.bio</a></h3>
@@ -202,7 +202,7 @@ See the [`examples/`](./examples) directory:
 
 - **Full docs:** [smarts.bio/docs](https://smarts.bio/docs)
 - **Platform:** [smarts.bio](https://smarts.bio)
-- **Issues:** [GitHub Issues](https://github.com/smartsbio/smarts-bio-node-sdk/issues)
+- **Issues:** [GitHub Issues](https://github.com/smartsbio/node-sdk/issues)
 - **Email:** dev@smarts.bio
 
 ---
