@@ -206,7 +206,7 @@ See the [`examples/`](./examples) directory:
 - **Full docs:** [smarts.bio/docs](https://smarts.bio/docs)
 - **Platform:** [smarts.bio](https://smarts.bio)
 - **Issues:** [GitHub Issues](https://github.com/smartsbio/node-sdk/issues)
-- **Email:** dev@smarts.bio
+- **Email:** support@smarts.bio
 
 ---
 
