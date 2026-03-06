@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/smartsbio/node-sdk/main/assets/logo.svg" alt="smarts.bio" height="60" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/smartsbio/node-sdk/main/assets/logo-white.svg" />
+    <img src="https://raw.githubusercontent.com/smartsbio/node-sdk/main/assets/logo.svg" alt="smarts.bio" height="60" />
+  </picture>
 </p>
 
 <h3 align="center">Official TypeScript / JavaScript SDK for <a href="https://smarts.bio">smarts.bio</a></h3>
