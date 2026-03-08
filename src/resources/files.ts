@@ -29,8 +29,13 @@ export class FilesResource {
         if (params.after) query.set('after', params.after);
 
         const res = await this.fetch(`/v1/files?${query}`);
-        const json = await res.json() as { data: FileMetadata[] } | FileMetadata[];
-        return Array.isArray(json) ? json : (json as { data: FileMetadata[] }).data;
+        // Backend returns { status, data: { files: [...], pagination: {...} } }
+        // Handle all possible shapes defensively
+        const json = await res.json() as any;
+        if (Array.isArray(json)) return json as FileMetadata[];
+        if (Array.isArray(json.data)) return json.data as FileMetadata[];
+        if (json.data && Array.isArray(json.data.files)) return json.data.files as FileMetadata[];
+        return [];
     }
 
     /**
@@ -48,6 +53,8 @@ export class FilesResource {
         // --- Resolve metadata without reading the full file yet ---
         let size: number;
         let filename: string;
+        // workspacePath is the directory within the workspace (not including filename)
+        let workspacePath: string | undefined = params.path;
 
         if (typeof file === 'string') {
             const { stat } = await import('fs/promises');
@@ -58,8 +65,15 @@ export class FilesResource {
             size = file.size;
             filename = (file as File).name ?? 'upload';
         } else {
+            // Buffer: derive filename from params.path last segment (e.g. "test/foo.fasta" → "foo.fasta")
             size = file.byteLength;
-            filename = 'upload';
+            if (params.path) {
+                const segments = params.path.split('/');
+                filename = segments[segments.length - 1] || 'upload';
+                workspacePath = segments.slice(0, -1).join('/') || undefined;
+            } else {
+                filename = 'upload';
+            }
         }
 
         const contentType = guessContentType(filename);
@@ -71,7 +85,7 @@ export class FilesResource {
                 filename,
                 contentType,
                 size,
-                path: params.path,
+                path: workspacePath,
             });
 
             let s3Body: BodyInit;
@@ -100,7 +114,7 @@ export class FilesResource {
         // --- Direct upload ≤ 10 MB ---
         const form = new FormData();
         form.append('workspace_id', params.workspaceId);
-        if (params.path) form.append('path', params.path);
+        if (workspacePath) form.append('path', workspacePath);
         if (params.description) form.append('description', params.description);
 
         if (typeof file === 'string') {
@@ -117,14 +131,18 @@ export class FilesResource {
             method: 'POST',
             body: form as unknown as BodyInit,
         });
-        return res.json() as Promise<FileMetadata>;
+        // Backend returns { status: 'success', data: FileMetadata, message: '...' }
+        const json = await res.json() as any;
+        return (json.data ?? json) as FileMetadata;
     }
 
     async getDownloadUrl(params: DownloadParams): Promise<string> {
         const query = new URLSearchParams({ workspace_id: params.workspaceId, key: params.key });
         const res = await this.fetch(`/v1/files/download?${query}`);
-        const json = await res.json() as { url: string; downloadUrl?: string };
-        return json.url ?? json.downloadUrl ?? '';
+        const json = await res.json() as any;
+        // Backend returns { status, data: { downloadUrl, fileKey } }
+        const inner = json.data ?? json;
+        return inner.downloadUrl ?? inner.url ?? '';
     }
 
     async delete(params: DownloadParams): Promise<void> {
@@ -143,7 +161,9 @@ export class FilesResource {
                 path: params.path,
             }),
         });
-        return res.json() as Promise<PresignedUploadResult>;
+        const json = await res.json() as any;
+        // Backend returns { status, data: { uploadUrl, fileKey, ... } }
+        return (json.data ?? json) as PresignedUploadResult;
     }
 
     async confirmUpload(params: {
@@ -163,6 +183,8 @@ export class FilesResource {
                 contentType: params.contentType,
             }),
         });
-        return res.json() as Promise<FileMetadata>;
+        const json = await res.json() as any;
+        // Backend returns { status, data: FileMetadata }
+        return (json.data ?? json) as FileMetadata;
     }
 }

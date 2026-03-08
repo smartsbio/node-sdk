@@ -20,14 +20,23 @@ export interface QueryResponse {
     conversationId?: string;
 }
 
-export type StreamChunkType = 'status' | 'content' | 'tool_call' | 'done' | 'error';
-
+/**
+ * A chunk emitted by query.stream().
+ *
+ * The agent sends progress events throughout processing, followed by a single
+ * completion event containing the full answer in `result`.
+ *
+ * Progress chunks:  { status: "Searching databases..." }
+ * Completion chunk: { status: "complete", result: "full answer", sessionId: "..." }
+ * Error chunk:      { status: "error", message: "..." }
+ */
 export interface StreamChunk {
-    type: StreamChunkType;
-    content?: string;
     status?: string;
-    tool?: string;
-    error?: string;
+    result?: string;
+    sessionId?: string;
+    messageId?: string;
+    message?: string;
+    pipelineData?: unknown;
 }
 
 // ── Conversations ─────────────────────────────────────────────────────────────

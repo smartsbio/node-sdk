@@ -17,6 +17,8 @@ export class ToolsResource {
                 input: params.input,
             }),
         });
-        return res.json();
+        // Agent returns { status: 'success', result: <tool output> } — unwrap for callers
+        const json = await res.json() as any;
+        return json.result ?? json;
     }
 }
